@@ -35,6 +35,11 @@ export default class BaseWidget {
         this.eventSourceUrl = null;
         this.eventSourceOnData = null;
         this.cachedData = {};
+
+        /* Connection timeout params */
+        this.timeoutPeriod = 1000;
+        this.retryLimit = 3;
+        this.eventSourceRetryCount = 0; // retrycount for $.ajax is managed in its own scope
     }
 
     /* Public functions */
@@ -98,6 +103,40 @@ export default class BaseWidget {
 
     /* Utility/protected functions */
 
+    ajaxGet(url, data={}) {
+        let retryLimit = this.retryLimit;
+        let timeoutPeriod = this.timeoutPeriod;
+        return new Promise((resolve, reject) => {
+            function makeRequest() {
+                $.ajax({
+                    type: 'GET',
+                    url: url,
+                    dataType: 'json',
+                    contentType: 'application/json',
+                    data: data,
+                    tryCount: 0,
+                    retryLimit: retryLimit,
+                    timeout: timeoutPeriod,
+                    success: function (responseData) {
+                        resolve(responseData);
+                    },
+                    error: function (xhr, textStatus, errorThrown) {
+                        if (textStatus === 'timeout') {
+                            this.tryCount++;
+                            if (this.tryCount <= this.retryLimit) {
+                                $.ajax(this);
+                                return;
+                            }
+                        }
+                        reject({ xhr, textStatus, errorThrown });
+                    }
+                });
+            }
+
+            makeRequest();
+        });
+    }
+
     dataChanged(id, data) {
         if (id in this.cachedData) {
             if (JSON.stringify(this.cachedData[id]) !== JSON.stringify(data)) {
@@ -119,9 +158,26 @@ export default class BaseWidget {
     openEventSource(url, onMessage) {
         this.closeEventSource();
 
+        if (this.eventSourceRetryCount >= this.retryLimit) {
+            return;
+        }
+
         this.eventSourceUrl = url;
         this.eventSourceOnData = onMessage;
         this.eventSource = new EventSource(url);
+
+        /* Unlike $.ajax, EventSource does not have a timeout mechanism */
+        let timeoutHandler = setTimeout(() => {
+            this.closeEventSource();
+            this.eventSourceRetryCount++;
+            this.openEventSource(url, onMessage);
+        }, this.timeoutPeriod);
+
+        this.eventSource.onopen = (event) => {
+            clearTimeout(timeoutHandler);
+            this.eventSourceRetryCount = 0;
+        };
+
         this.eventSource.onmessage = onMessage;
         this.eventSource.onerror = (e) => {
             if (this.eventSource.readyState == EventSource.CONNECTING) {
