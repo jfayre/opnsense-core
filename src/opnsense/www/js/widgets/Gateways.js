@@ -34,7 +34,7 @@ export default class Gateways extends BaseTableWidget {
     getGridOptions() {
         return {
             // trigger overflow-y:scroll after 650px height
-            sizeToContent: 650
+            sizeToContent: 650,
         }
     }
 
@@ -47,7 +47,8 @@ export default class Gateways extends BaseTableWidget {
     }
 
     async onWidgetTick() {
-        const data = await this.ajaxGet('/api/routes/gateway/status', {});
+        $('.gateways-status-icon').tooltip('hide');
+        const data = await this.ajaxCall('/api/routes/gateway/status');
         if (data.items === undefined) {
             return;
         }
@@ -72,7 +73,7 @@ export default class Gateways extends BaseTableWidget {
             }
 
             let gw = `<div>
-                <i class="fa fa-circle text-muted ${color}" style="font-size: 11px; cursor: pointer;"
+                <i class="fa fa-circle text-muted ${color} gateways-status-icon" style="font-size: 11px; cursor: pointer;"
                     data-toggle="tooltip" title="${status_translated}">
                 </i>
                 &nbsp;
@@ -91,6 +92,6 @@ export default class Gateways extends BaseTableWidget {
             this.updateTable('gateway-table', [[gw, stats]], `gw_${name}`);
         });
 
-        $('[data-toggle="tooltip"]').tooltip();
+        $('.gateways-status-icon').tooltip({container: 'body'});
     }
 }

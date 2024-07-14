@@ -35,7 +35,7 @@ export default class Interfaces extends BaseTableWidget {
     getGridOptions() {
         return {
             // trigger overflow-y:scroll after 650px height
-            sizeToContent: 650
+            sizeToContent: 350
         }
     }
 
@@ -50,10 +50,12 @@ export default class Interfaces extends BaseTableWidget {
     }
 
     async onWidgetTick() {
-        const data = await this.ajaxGet('/api/interfaces/overview/interfacesInfo');
+        const data = await this.ajaxCall('/api/interfaces/overview/interfacesInfo');
         if (!this.dataChanged('interfaces', data)) {
             return;
         }
+
+        $('.if-status-icon').tooltip('hide');
 
         let rows = [];
         data.rows.map((intf_data) => {
@@ -69,7 +71,7 @@ export default class Interfaces extends BaseTableWidget {
 
             row.push($(`
                 <div class="interface-info if-name">
-                    <i class="fa fa-plug text-${intf_data.status === 'up' ? 'success' : 'danger'}" title="" data-toggle="tooltip" data-original-title="${intf_data.status}"></i>
+                    <i class="fa fa-plug text-${intf_data.status === 'up' ? 'success' : 'danger'} if-status-icon" title="" data-toggle="tooltip" data-original-title="${intf_data.status}"></i>
                     <b class="interface-descr" onclick="location.href='/interfaces.php?if=${intf_data.identifier}'">
                         ${intf_data.description}
                     </b>
@@ -106,7 +108,7 @@ export default class Interfaces extends BaseTableWidget {
 
         super.updateTable('if-table', rows);
 
-        $('[data-toggle="tooltip"]').tooltip();
+        $('.if-status-icon').tooltip({container: 'body'});
     }
 
     onWidgetResize(elem, width, height) {

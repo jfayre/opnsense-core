@@ -352,8 +352,8 @@ function filter_core_rules_system($fw, $defaults)
                 '#ref' => 'system_advanced_network.php#ipv6allow',
                 'interface' => $intf,
                 'protocol' => 'udp',
-                'from' => 'fe80::/10',
-                /* omit from_port as the server may use a different source port */
+                /* omit 'from' as the server may use a GUA instead */
+                /* omit 'from_port' as the server may use a different source port */
                 'to' => 'fe80::/10',
                 'to_port' => 546,
             ], $defaults['pass']);
@@ -365,7 +365,7 @@ function filter_core_rules_system($fw, $defaults)
                 'protocol' => 'udp',
                 'from' => 'fe80::/10',
                 'from_port' => 546,
-                'to' => 'fe80::/10',
+                'to' => 'fe80::/10,ff02::/16',
                 'to_port' => 547,
             ];
             if (isset($intfinfo['dhcp6vlanprio'])) {

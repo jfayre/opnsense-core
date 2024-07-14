@@ -79,7 +79,7 @@
             <endpoint>/api/diagnostics/system/systemResources</endpoint>
         </endpoints>
         <translations>
-            <title>Memory usage</title>
+            <title>Memory</title>
             <used>Used</used>
             <free>Free</free>
             <arc>ARC</arc>
@@ -91,7 +91,7 @@
             <endpoint>/api/diagnostics/system/systemDisk</endpoint>
         </endpoints>
         <translations>
-            <title>Disk usage</title>
+            <title>Disk</title>
             <used>Used</used>
             <free>Free</free>
         </translations>
@@ -285,4 +285,31 @@
             <start>Start</start>
         </translations>
     </services>
+    <openvpnclients>
+        <filename>OpenVPNClients.js</filename>
+        <endpoints>
+            <endpoint>/api/openvpn/service/search_sessions</endpoint>
+            <endpoint>/api/openvpn/service/kill_session</endpoint>
+        </endpoints>
+        <translations>
+            <title>OpenVPN Client Connections</title>
+            <noclients>No clients connected</noclients>
+            <server>Server</server>
+            <kill>Kill connection</kill>
+            <clients>Clients</clients>
+        </translations>
+    </openvpnclients>
+    <openvpnservers>
+        <filename>OpenVPNServers.js</filename>
+        <endpoints>
+            <endpoint>/api/openvpn/service/search_sessions</endpoint>
+        </endpoints>
+        <translations>
+            <title>OpenVPN Server Connections</title>
+            <noserver>Not connected to any server</noserver>
+            <server>Server</server>
+            <client>Client</client>
+            <stopped>Stopped</stopped>
+        </translations>
+    </openvpnservers>
 </metadata>

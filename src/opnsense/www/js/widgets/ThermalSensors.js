@@ -174,12 +174,12 @@ export default class ThermalSensors extends BaseWidget {
 
         this.chart = new Chart(context, config);
 
-        $(`#${this.id}-title`).append(`&nbsp;<i class="fa fa-question-circle" data-toggle="tooltip" title="${this.translations.help}"></i>`);
-        $('[data-toggle="tooltip"]').tooltip({container: 'body', triger: 'hover'});
+        $(`#${this.id}-title`).append(`&nbsp;<i class="fa fa-question-circle thermalsensors-info-icon" data-toggle="tooltip" title="${this.translations.help}"></i>`);
+        $('.thermalsensors-info-icon').tooltip({container: 'body'});
     }
 
     async onWidgetTick() {
-        const data = await this.ajaxGet('/api/diagnostics/system/systemTemperature');
+        const data = await this.ajaxCall('/api/diagnostics/system/systemTemperature');
         if (!data || !data.length) {
             $(`.${this.id}-chart-container`).html(`
                 <a href="/system_advanced_misc.php">${this.translations.unconfigured}</a>

@@ -29,7 +29,7 @@ export default class BaseWidget {
         this.config = config;
         this.id = null;
         this.translations = {};
-        this.tickTimeout = 5; // Default tick timeout
+        this.tickTimeout = 10; // Default tick timeout
         this.resizeHandles = "all"
         this.eventSource = null;
         this.eventSourceUrl = null;
@@ -71,6 +71,10 @@ export default class BaseWidget {
         return {};
     }
 
+    getWidgetOptions() {
+        return {};
+    }
+
     getMarkup() {
         return $("");
     }
@@ -103,13 +107,13 @@ export default class BaseWidget {
 
     /* Utility/protected functions */
 
-    ajaxGet(url, data={}) {
+    ajaxCall(url, data={}, method='GET') {
         let retryLimit = this.retryLimit;
         let timeoutPeriod = this.timeoutPeriod;
         return new Promise((resolve, reject) => {
             function makeRequest() {
                 $.ajax({
-                    type: 'GET',
+                    type: method,
                     url: url,
                     dataType: 'json',
                     contentType: 'application/json',
@@ -222,5 +226,72 @@ export default class BaseWidget {
         } else {
             return "";
         }
+    }
+
+    sanitizeSelector(selector) {
+        return selector.replace(/[:/.]/gi, '__');
+    }
+
+    startCommandTransition(id, $target) {
+        /**
+         * Note: this function works best wen applied to an element
+         * inside a div with at least the following styles:
+         *     display: flex;
+         *     align-items: center;
+         *     justify-content: center;
+         */
+        id = this.sanitizeSelector(id);
+        let $container = $(`
+            <span class="transition-icon-container">
+                <i class="fa fa-spinner fa-spin hide transition-spinner" id="spinner-${id}" style="font-size: 13px;"></i>
+                <i class="fa fa-check checkmark hide transition-check" id="check-${id}" style="font-size: 13px;"></i>
+            </span>
+        `);
+
+        // Copy inline styles from target to container
+        let inlineStyles = $target.attr('style');
+        if (inlineStyles) {
+            $container.attr('style', inlineStyles);
+        }
+
+        $target.before($container);
+        $target.addClass('show');
+        $target.toggleClass('show hide');
+        $(`#spinner-${id}`).addClass('show');
+        $target.prop('disabled', true);
+    }
+
+    async endCommandTransition(id, $target, success=true, hide=false) {
+        id = this.sanitizeSelector(id);
+        let $container = $target.prev('.transition-icon-container');
+        let $spinner = $container.find(`#spinner-${id}`);
+        let $check = $container.find(`#check-${id}`);
+
+        return new Promise(resolve => {
+            if (success) {
+                setTimeout(() => {
+                    $spinner.removeClass('show').addClass('hide');
+                    $check.toggleClass('hide show');
+                    setTimeout(() => {
+                        $check.toggleClass('hide show');
+                        $target.prop('disabled', false);
+                        if (!hide) {
+                            $target.toggleClass('show hide');
+                        }
+                        $container.remove();
+                        resolve();
+                    }, 500);
+                }, 200);
+            } else {
+                if (!hide) {
+                    $target.toggleClass('show hide');
+                }
+                $target.toggleClass('show hide');
+                $target.prop('disabled', false);
+                $spinner.removeClass('show').addClass('hide');
+                $container.remove();
+                resolve();
+            }
+        });
     }
 }

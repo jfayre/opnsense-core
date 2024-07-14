@@ -30,7 +30,7 @@ export default class Monit extends BaseTableWidget {
     constructor() {
         super();
 
-        this.tickTimeout = 20;
+        this.tickTimeout = 25;
     }
 
     getMarkup() {
@@ -80,11 +80,14 @@ export default class Monit extends BaseTableWidget {
     }
 
     async onWidgetTick() {
-        const data =  await this.ajaxGet('/api/monit/status/get/xml');
+        const data =  await this.ajaxCall('/api/monit/status/get/xml');
         if (data['result'] !== 'ok') {
             $('#monit-table').html(`<a href="/ui/monit">${this.translations.unconfigured}</a>`);
             return;
         }
+
+        $('.monit-status-icon').tooltip('hide');
+        $('.monit-type-icon').tooltip('hide');
 
         let rows = [];
         $.each(data['status']['service'], (index, service) => {
@@ -93,11 +96,11 @@ export default class Monit extends BaseTableWidget {
 
             let $header = $(`
                 <div>
-                    <i class="fa fa-circle text-muted ${color}" style="font-size: 11px; cursor: pointer;"
+                    <i class="fa fa-circle text-muted ${color} monit-status-icon" style="font-size: 11px; cursor: pointer;"
                         data-toggle="tooltip" title="${this.statusMap[service['status']]}">
                     </i>
                     &nbsp;
-                    <i class="fa ${icon}" style="font-size: 11px;"
+                    <i class="fa ${icon} monit-type-icon" style="font-size: 11px;"
                         data-toggle="tooltip" title="${this.serviceMap[service['@attributes']['type']]}">
                     </i>
                     &nbsp;
@@ -110,5 +113,8 @@ export default class Monit extends BaseTableWidget {
         });
 
         this.updateTable('monit-table', rows);
+
+        $('.monit-status-icon').tooltip({container: 'body'});
+        $('.monit-type-icon').tooltip({container: 'body'});
     }
 }
